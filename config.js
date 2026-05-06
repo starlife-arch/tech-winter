@@ -25,10 +25,10 @@ const CONFIG = {
     address: "Friends Corner Building, Juja Town, Along Thika Super Highway, Near Juja Posta",
     phone: "+254 795 323 615",
     whatsapp: "+254795323615",
-    email: "contact@winterfelltech.com",
+    email: "technologieswinterfell@gmail.com",
     hours: {
-      weekday: "Monday – Saturday: 8:00 AM – 7:00 PM",
-      weekend: "Sunday: 10:00 AM – 4:00 PM"
+      weekday: "Monday – Saturday: 8:00 AM – 8:00 PM",
+      weekend: "Sunday: Closed"
     }
   },
 
@@ -71,7 +71,7 @@ const CONFIG = {
       id: "PHONES",
       name: "PHONES",
       icon: "fas fa-mobile-alt",
-      image: "banner_phones.png",
+      image: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&q=80",
       hasBrands: true,
       brands: ["Apple", "Samsung", "Xiaomi", "Infinix", "Tecno", "Itel"]
     },
@@ -79,7 +79,7 @@ const CONFIG = {
       id: "LAPTOP",
       name: "LAPTOP",
       icon: "fas fa-laptop",
-      image: "banner_laptops.png",
+      image: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&q=80",
       hasBrands: true,
       brands: ["HP", "Dell", "Lenovo", "Apple"]
     },
@@ -101,14 +101,14 @@ const CONFIG = {
       id: "headphones",
       name: "Headphones",
       icon: "fas fa-headphones",
-      image: "banner_audio.png",
+      image: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&q=80",
       hasBrands: false
     },
     {
       id: "ACCESSORIES",
       name: "ACCESSORIES",
       icon: "fas fa-microchip",
-      image: "banner_accessories.png",
+      image: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&q=80",
       hasBrands: false
     },
     {
@@ -140,7 +140,7 @@ const CONFIG = {
       category: "PHONES",
       brand: "Apple",
       description: "6.7\" Super Retina XDR display, A17 Pro chip, advanced camera system with 48MP main camera, 5G, titanium design.",
-      image: "https://images.unsplash.com/photo-1592286927505-1def25e63e67?w=600&q=80",
+      image: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&q=80",
       colors: ["Space Black", "Silver", "Gold", "Deep Purple"],
       specs: {
         display: "6.7\" Super Retina XDR",
@@ -157,7 +157,7 @@ const CONFIG = {
       category: "PHONES",
       brand: "Apple",
       description: "6.1\" Super Retina XDR, A17 Pro, 48MP triple camera, 5G, titanium design.",
-      image: "https://images.unsplash.com/photo-1632661674596-618d8b26fde5?w=600&q=80",
+      image: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&q=80",
       colors: ["Space Black", "Silver", "Gold", "Deep Purple"],
       specs: {
         display: "6.1\" Super Retina XDR",
@@ -339,7 +339,7 @@ const CONFIG = {
       category: "LAPTOP",
       brand: "HP",
       description: "15.6\" FHD IPS, Intel Core i5-1235U, 8GB RAM, 512GB SSD, Windows 11.",
-      image: "banner_laptops.png",
+      image: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&q=80",
       colors: ["Silver", "Black"],
       specs: {
         display: "15.6\" FHD IPS",
@@ -449,7 +449,7 @@ const CONFIG = {
       category: "headphones",
       brand: "Generic",
       description: "Wireless Bluetooth 5.0, 30-hour battery, noise cancellation, foldable design.",
-      image: "banner_audio.png",
+      image: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&q=80",
       colors: ["Black", "White", "Blue"],
       specs: {
         bluetooth: "5.0",
@@ -467,7 +467,7 @@ const CONFIG = {
       category: "ACCESSORIES",
       brand: "Generic",
       description: "9H hardness tempered glass, anti-fingerprint, easy installation.",
-      image: "banner_accessories.png",
+      image: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&q=80",
       colors: ["Clear"],
       specs: {
         hardness: "9H",
