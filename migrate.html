@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Winterfell – Firebase Migration Tool</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #1a1a1a;
+      --secondary: #0066ff;
+      --success: #25d366;
+      --accent: #ff3333;
+      --border: #e0e0e0;
+      --light: #f5f5f5;
+      --radius: 8px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f0f2f5;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 680px;
+      overflow: hidden;
+    }
+    .card-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 28px 32px;
+    }
+    .card-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .card-header p { font-size: 14px; opacity: 0.7; }
+    .card-body { padding: 32px; }
+    .warning-box {
+      background: #fffbeb;
+      border: 1px solid #f59e0b;
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 28px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .warning-box strong { color: #b45309; }
+    .section { margin-bottom: 28px; }
+    .section h3 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section h3 .num {
+      width: 24px; height: 24px;
+      background: var(--secondary);
+      color: #fff;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .data-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .data-row .label { font-weight: 600; }
+    .data-row .count {
+      background: var(--light);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      color: #666;
+    }
+    .btn {
+      padding: 13px 24px;
+      border-radius: var(--radius);
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s;
+      width: 100%;
+      justify-content: center;
+    }
+    .btn-blue { background: var(--secondary); color: #fff; }
+    .btn-blue:hover { background: #0052cc; }
+    .btn-blue:disabled { background: #93b8ff; cursor: not-allowed; }
+    .log-box {
+      background: #1a1a1a;
+      color: #aaa;
+      border-radius: var(--radius);
+      padding: 20px;
+      font-family: monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      max-height: 320px;
+      overflow-y: auto;
+      margin-top: 20px;
+      display: none;
+    }
+    .log-box.show { display: block; }
+    .log-ok { color: #25d366; }
+    .log-err { color: #ff6b6b; }
+    .log-info { color: #60a5fa; }
+    .progress-bar-wrap {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      margin-top: 16px;
+      display: none;
+      overflow: hidden;
+    }
+    .progress-bar-wrap.show { display: block; }
+    .progress-bar {
+      height: 100%;
+      background: var(--secondary);
+      border-radius: 3px;
+      transition: width 0.3s;
+      width: 0%;
+    }
+    .done-banner {
+      background: #f0fdf4;
+      border: 1px solid var(--success);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      display: none;
+      margin-top: 20px;
+    }
+    .done-banner.show { display: block; }
+    .done-banner i { font-size: 32px; color: var(--success); margin-bottom: 8px; }
+    .done-banner h3 { font-size: 18px; margin-bottom: 4px; }
+    .done-banner p { font-size: 14px; color: #666; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-header">
+    <h1><i class="fas fa-database"></i> Firebase Migration Tool</h1>
+    <p>One-time tool — pushes all existing config.js data into Firebase</p>
+  </div>
+  <div class="card-body">
+
+    <div class="warning-box">
+      <strong>⚠️ Run this only once.</strong> This tool pushes all products, collections, hero slides, and
+      business info from your old <code>config.js</code> into Firebase Firestore. After this is done,
+      delete this file from your server — it is not needed again.
+    </div>
+
+    <div class="section">
+      <h3><span class="num">1</span> Data to be migrated</h3>
+      <div class="data-row">
+        <span class="label"><i class="fas fa-box" style="color:var(--secondary)"></i> Products</span>
+        <span class="count" id="countProducts">—</span>
+      </div>
+      <div class="data-row">
+        <span class="label"><i class="fas fa-layer-group" style="color:#8b5cf6"></i> Collections</span>
+        <span class="count" id="countCollections">—</span>
+      </div>
+      <div class="data-row">
+        <span class="label"><i class="fas fa-images" style="color:#f59e0b"></i> Hero Slides</span>
+        <span class="count" id="countSlides">—</span>
+      </div>
+      <div class="data-row">
+        <span class="label"><i class="fas fa-store" style="color:var(--success)"></i> Business Info</span>
+        <span class="count" id="countBusiness">—</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3><span class="num">2</span> Run Migration</h3>
+      <button class="btn btn-blue" id="migrateBtn" onclick="runMigration()">
+        <i class="fas fa-upload"></i> Start Migration
+      </button>
+      <div class="progress-bar-wrap" id="progressWrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+    </div>
+
+    <div class="log-box" id="logBox"></div>
+
+    <div class="done-banner" id="doneBanner">
+      <i class="fas fa-check-circle"></i>
+      <h3>Migration Complete!</h3>
+      <p>All data is now in Firebase. You can safely delete this file from your server.<br>
+         Open <a href="admin.html">admin.html</a> to manage your store.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- Load config.js so we can read the data -->
+<script src="config.js"></script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import {
+    getFirestore, collection, doc,
+    setDoc, addDoc, writeBatch
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // ============================================================
+  // 🔧 PASTE YOUR FIREBASE CONFIG HERE (same as index.html)
+  // ============================================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyBOzQLCgmKOFpyNnKXc0gZ-deCpNIqhn60",
+    authDomain: "winter-tech-site.firebaseapp.com",
+    projectId: "winter-tech-site",
+    storageBucket: "winter-tech-site.firebasestorage.app",
+    messagingSenderId: "5313650126",
+    appId: "1:5313650126:web:dbfbdde6848a1c38411f9f",
+    measurementId: "G-1KEVJCSS2P"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Show counts once page loads
+  window.addEventListener('DOMContentLoaded', () => {
+    if (typeof CONFIG === 'undefined') {
+      document.getElementById('countProducts').textContent = 'config.js not found!';
+      return;
+    }
+    document.getElementById('countProducts').textContent = CONFIG.products.length + ' products';
+    document.getElementById('countCollections').textContent = CONFIG.collections.length + ' collections';
+    document.getElementById('countSlides').textContent = CONFIG.heroSlides.length + ' slides';
+    document.getElementById('countBusiness').textContent = '1 document';
+  });
+
+  // ── LOGGING ──
+  function log(msg, type = 'info') {
+    const box = document.getElementById('logBox');
+    box.classList.add('show');
+    const line = document.createElement('div');
+    line.className = `log-${type}`;
+    const icons = { ok: '✓', err: '✗', info: '→' };
+    line.textContent = `${icons[type] || '→'} ${msg}`;
+    box.appendChild(line);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function setProgress(pct) {
+    document.getElementById('progressWrap').classList.add('show');
+    document.getElementById('progressBar').style.width = pct + '%';
+  }
+
+  // ── MIGRATION ──
+  window.runMigration = async function() {
+    if (typeof CONFIG === 'undefined') {
+      alert('config.js not loaded. Make sure migrate.html is in the same folder as config.js.');
+      return;
+    }
+
+    const btn = document.getElementById('migrateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Migrating…';
+
+    const total = CONFIG.products.length + CONFIG.collections.length + CONFIG.heroSlides.length + 1;
+    let done = 0;
+
+    function tick(label) {
+      done++;
+      setProgress(Math.round((done / total) * 100));
+      log(label, 'ok');
+    }
+
+    try {
+      // ── 1. Business info ──
+      log('Migrating business info…', 'info');
+      await setDoc(doc(db, "business", "main"), CONFIG.business);
+      tick('Business info saved');
+
+      // ── 2. Collections (use collection id as doc id) ──
+      log(`Migrating ${CONFIG.collections.length} collections…`, 'info');
+      for (let i = 0; i < CONFIG.collections.length; i++) {
+        const c = CONFIG.collections[i];
+        await setDoc(doc(db, "collections", c.id), { ...c, order: i + 1 });
+        tick(`Collection: ${c.name}`);
+      }
+
+      // ── 3. Hero slides ──
+      log(`Migrating ${CONFIG.heroSlides.length} hero slides…`, 'info');
+      for (let i = 0; i < CONFIG.heroSlides.length; i++) {
+        const s = CONFIG.heroSlides[i];
+        await addDoc(collection(db, "heroSlides"), { ...s, order: i + 1 });
+        tick(`Slide: ${s.title}`);
+      }
+
+      // ── 4. Products (use product id as doc id) ──
+      log(`Migrating ${CONFIG.products.length} products…`, 'info');
+      for (const p of CONFIG.products) {
+        await setDoc(doc(db, "products", p.id), p);
+        tick(`Product: ${p.name}`);
+      }
+
+      // ── Done ──
+      log('All data migrated successfully!', 'ok');
+      setProgress(100);
+      document.getElementById('doneBanner').classList.add('show');
+      btn.innerHTML = '<i class="fas fa-check"></i> Migration Complete';
+
+    } catch (err) {
+      log('ERROR: ' + err.message, 'err');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-redo"></i> Retry Migration';
+    }
+  };
+</script>
+</body>
+</html>
