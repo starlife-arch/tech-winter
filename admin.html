@@ -245,7 +245,7 @@
 
     .btn-outline:hover { background: var(--light); }
 
-    /* ── PRODUCT GRID (mirrors the storefront) ── */
+    /* ── PRODUCT GRID ── */
     .products-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -376,7 +376,7 @@
       background: #fff;
       border-radius: 12px;
       width: 100%;
-      max-width: 680px;
+      max-width: 800px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.2);
       animation: modalIn 0.2s ease-out;
       margin: auto;
@@ -456,6 +456,65 @@
 
     .form-group textarea { resize: vertical; min-height: 80px; }
 
+    /* Variants section */
+    .variants-section {
+      margin-top: 20px;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+    }
+
+    .variants-section h4 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .variant-row {
+      background: var(--light);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .variant-row .remove-variant {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .variant-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .variant-fields .full { grid-column: 1 / -1; }
+
+    .add-variant-btn {
+      background: none;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 10px;
+      width: 100%;
+      cursor: pointer;
+      color: var(--secondary);
+      font-size: 13px;
+      margin-top: 8px;
+      transition: all 0.2s;
+    }
+
+    .add-variant-btn:hover { background: var(--light); }
+
     /* ── IMAGE UPLOAD ── */
     .image-upload-area {
       border: 2px dashed var(--border);
@@ -493,7 +552,6 @@
     .upload-text { font-size: 14px; color: var(--muted); }
     .upload-text strong { color: var(--secondary); }
 
-    /* Upload progress */
     .upload-progress {
       height: 4px;
       background: var(--border);
@@ -561,7 +619,7 @@
     .tags-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
     /* ── SPECS TABLE ── */
-    .specs-rows { display: flex; flex-direction: column; gap: 10px; }
+    .specs-rows { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
 
     .spec-row-input {
       display: grid;
@@ -775,24 +833,23 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── RESPONSIVE ── */
     @media (max-width: 640px) {
       .form-grid { grid-template-columns: 1fr; }
       .slide-card { grid-template-columns: 1fr; }
       .collection-row { grid-template-columns: 1fr; }
-      .spec-row-input { grid-template-columns: 1fr 1fr auto; }
+      .variant-fields { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <!-- ── LOADING ── -->
+  <!-- LOADING -->
   <div id="adminLoadingScreen">
     <div class="spinner"></div>
     <p style="color: var(--muted); font-size: 14px;">Connecting to database…</p>
   </div>
 
-  <!-- ── LOGIN ── -->
+  <!-- LOGIN -->
   <div id="loginScreen">
     <div class="login-box">
       <img src="https://i.postimg.cc/5y3jC6hc/Whats-App-Image-2026-05-19-at-4-34-13-PM.jpg" alt="Logo">
@@ -804,7 +861,7 @@
     </div>
   </div>
 
-  <!-- ── TOP BAR ── -->
+  <!-- TOP BAR -->
   <div class="admin-topbar">
     <div class="admin-topbar-left">
       <img src="https://i.postimg.cc/5y3jC6hc/Whats-App-Image-2026-05-19-at-4-34-13-PM.jpg" alt="Logo">
@@ -819,7 +876,7 @@
     </div>
   </div>
 
-  <!-- ── TABS ── -->
+  <!-- TABS -->
   <div class="admin-tabs">
     <div class="admin-tab active" onclick="switchTab('products')">
       <i class="fas fa-box"></i> Products
@@ -832,7 +889,7 @@
     </div>
   </div>
 
-  <!-- ── MAIN BODY ── -->
+  <!-- MAIN BODY -->
   <div class="admin-body">
 
     <!-- PRODUCTS TAB -->
@@ -841,7 +898,7 @@
       <div class="page-header">
         <div>
           <h2>Products</h2>
-          <p>Add, edit, or remove products from your store</p>
+          <p>Add, edit, or remove products. Use "Variants" for RAM/storage options with different prices.</p>
         </div>
         <button class="btn btn-blue" onclick="openAddProduct()">
           <i class="fas fa-plus"></i> Add Product
@@ -883,9 +940,7 @@
 
   </div>
 
-  <!-- ══════════════════════════════════════════
-       PRODUCT MODAL
-  ══════════════════════════════════════════ -->
+  <!-- PRODUCT MODAL -->
   <div class="modal-overlay" id="productModal">
     <div class="modal">
       <div class="modal-header">
@@ -894,7 +949,6 @@
       </div>
       <div class="modal-body">
         <div class="form-grid">
-
           <!-- Image Upload -->
           <div class="form-group full">
             <label>Product Image <span class="req">*</span></label>
@@ -903,10 +957,7 @@
               <img id="imagePreview" class="image-preview" src="" alt="preview">
               <div id="uploadPlaceholder">
                 <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-                <div class="upload-text">
-                  <strong>Click to upload</strong> or drag & drop<br>
-                  PNG, JPG up to 10MB
-                </div>
+                <div class="upload-text"><strong>Click to upload</strong> or drag & drop<br>PNG, JPG up to 10MB</div>
               </div>
               <div class="upload-progress" id="uploadProgress">
                 <div class="upload-progress-bar" id="uploadProgressBar"></div>
@@ -918,32 +969,25 @@
           <!-- Name -->
           <div class="form-group full">
             <label>Product Name <span class="req">*</span></label>
-            <input type="text" id="pName" placeholder="e.g. Samsung Galaxy S25 Ultra">
+            <input type="text" id="pName" placeholder="e.g. Itel A70">
           </div>
 
-          <!-- Price + Category -->
-          <div class="form-group">
-            <label>Price (KES) <span class="req">*</span></label>
-            <input type="number" id="pPrice" placeholder="e.g. 185000" min="0">
-          </div>
-
+          <!-- Category + Brand -->
           <div class="form-group">
             <label>Category <span class="req">*</span></label>
             <select id="pCategory">
               <option value="">Select category…</option>
             </select>
           </div>
-
-          <!-- Brand -->
           <div class="form-group">
             <label>Brand <span class="req">*</span></label>
-            <input type="text" id="pBrand" placeholder="e.g. Samsung">
+            <input type="text" id="pBrand" placeholder="e.g. Itel">
           </div>
 
           <!-- Product ID -->
-          <div class="form-group">
+          <div class="form-group full">
             <label>Product ID <span class="req">*</span></label>
-            <input type="text" id="pId" placeholder="e.g. samsung-s25-ultra">
+            <input type="text" id="pId" placeholder="e.g. itel-a70">
             <span style="font-size:11px;color:var(--muted)">Unique slug, no spaces, use hyphens</span>
           </div>
 
@@ -957,21 +1001,29 @@
           <div class="form-group full">
             <label>Available Colors</label>
             <div class="tags-input" id="colorsTagsInput" onclick="document.getElementById('colorInput').focus()">
-              <input type="text" id="colorInput" placeholder="Type a color and press Enter…"
-                onkeydown="handleColorTag(event)">
+              <input type="text" id="colorInput" placeholder="Type a color and press Enter…" onkeydown="handleColorTag(event)">
             </div>
             <p class="tags-hint">Press Enter after each color to add it as a tag</p>
           </div>
 
-          <!-- Specs -->
+          <!-- Base Specs (optional fallback) -->
           <div class="form-group full">
-            <label>Specifications</label>
+            <label>Base Specifications (shared across variants)</label>
             <div class="specs-rows" id="specsRows"></div>
             <button class="add-spec-btn" onclick="addSpecRow()">
               <i class="fas fa-plus"></i> Add Specification
             </button>
           </div>
 
+          <!-- VARIANTS SECTION (RAM/Storage options) -->
+          <div class="form-group full variants-section">
+            <h4><i class="fas fa-code-branch"></i> Product Variants (RAM / Storage)</h4>
+            <div id="variantsContainer"></div>
+            <button class="add-variant-btn" onclick="addVariant()">
+              <i class="fas fa-plus"></i> Add Variant (e.g., 4GB/128GB)
+            </button>
+            <p class="tags-hint" style="margin-top:8px;">Each variant can have its own price and specific specs (RAM, Storage). Leave variant specs empty to use base specs.</p>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -983,9 +1035,7 @@
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════
-       SLIDE MODAL
-  ══════════════════════════════════════════ -->
+  <!-- SLIDE MODAL -->
   <div class="modal-overlay" id="slideModal">
     <div class="modal">
       <div class="modal-header">
@@ -1033,9 +1083,7 @@
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════
-       COLLECTION MODAL
-  ══════════════════════════════════════════ -->
+  <!-- COLLECTION MODAL -->
   <div class="modal-overlay" id="collectionModal">
     <div class="modal">
       <div class="modal-header">
@@ -1093,9 +1141,7 @@
   <!-- TOAST -->
   <div class="admin-toast" id="adminToast"></div>
 
-  <!-- ══════════════════════════════════════════
-       FIREBASE + APP LOGIC
-  ══════════════════════════════════════════ -->
+  <!-- FIREBASE + APP LOGIC -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
@@ -1103,9 +1149,7 @@
       setDoc, addDoc, deleteDoc, updateDoc
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // ============================================================
-    // 🔧 REPLACE WITH YOUR FIREBASE CREDENTIALS
-    // ============================================================
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBOzQLCgmKOFpyNnKXc0gZ-deCpNIqhn60",
       authDomain: "winter-tech-site.firebaseapp.com",
@@ -1116,22 +1160,13 @@
       measurementId: "G-1KEVJCSS2P"
     };
 
-    // ============================================================
-    // 🔧 REPLACE WITH YOUR CLOUDINARY CREDENTIALS
-    // ============================================================
     const CLOUDINARY_CLOUD_NAME = "dbyzsrkfj";
     const CLOUDINARY_UPLOAD_PRESET = "winterfell_uploads";
-
-    // ============================================================
-    // 🔒 ADMIN PASSWORD — change this to something strong
-    // ============================================================
     const ADMIN_PASSWORD = "winterfell2024";
 
-    // ── Init ──
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ── State ──
     let allProducts = [];
     let allCollections = [];
     let allSlides = [];
@@ -1142,8 +1177,9 @@
     let pendingSlideImageUrl = '';
     let pendingCollImageUrl = '';
     let productColors = [];
+    let productVariants = []; // array of { label, price, specs: {} }
 
-    // ── Expose to global scope ──
+    // Expose globals
     window.doLogin = doLogin;
     window.doLogout = doLogout;
     window.switchTab = switchTab;
@@ -1168,8 +1204,10 @@
     window.saveCollection = saveCollection;
     window.handleCollImageSelect = handleCollImageSelect;
     window.openEditCollection = openEditCollection;
+    window.addVariant = addVariant;
+    window.removeVariant = removeVariant;
 
-    // ── LOGIN ──
+    // LOGIN
     function doLogin() {
       const pw = document.getElementById('loginPassword').value;
       if (pw === ADMIN_PASSWORD) {
@@ -1180,11 +1218,9 @@
       }
     }
 
-    function doLogout() {
-      location.reload();
-    }
+    function doLogout() { location.reload(); }
 
-    // ── LOAD DATA ──
+    // LOAD DATA
     async function loadData() {
       try {
         const [prodSnap, colSnap, slideSnap] = await Promise.all([
@@ -1213,7 +1249,6 @@
       }
     }
 
-    // ── STATS ──
     function renderStats() {
       const categories = [...new Set(allProducts.map(p => p.category))];
       const html = [
@@ -1233,9 +1268,9 @@
       document.getElementById('statsBar').innerHTML = html;
     }
 
-    // ── FILTER ──
     function renderCollectionFilters() {
       const sel = document.getElementById('filterCategory');
+      sel.innerHTML = '<option value="">All Categories</option>';
       allCollections.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c.id;
@@ -1244,6 +1279,7 @@
       });
 
       const pSel = document.getElementById('pCategory');
+      pSel.innerHTML = '<option value="">Select category…</option>';
       allCollections.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c.id;
@@ -1263,42 +1299,27 @@
       renderProductsGrid(filtered);
     }
 
-    // ── RENDER PRODUCTS GRID ──
     function renderProductsGrid(products) {
       const list = products ?? allProducts;
       const grid = document.getElementById('productsGrid');
-
       if (list.length === 0) {
-        grid.innerHTML = `
-          <div class="empty-state" style="grid-column:1/-1">
-            <i class="fas fa-box-open"></i>
-            <p>No products yet. Click "Add Product" to get started.</p>
-          </div>`;
+        grid.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No products yet. Click "Add Product" to get started.</p></div>`;
         return;
       }
-
       grid.innerHTML = list.map(p => `
         <div class="product-card">
           <div class="product-image">
-            ${p.image
-              ? `<img src="${p.image}" alt="${p.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
-              : ''}
-            <div class="no-image" ${p.image ? 'style="display:none"' : ''}>
-              <i class="fas fa-image"></i>
-            </div>
+            ${p.image ? `<img src="${p.image}" alt="${p.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ''}
+            <div class="no-image" ${p.image ? 'style="display:none"' : ''}><i class="fas fa-image"></i></div>
           </div>
           <div class="product-info">
             <div class="product-brand">${p.brand || ''}</div>
             <div class="product-name">${p.name}</div>
-            <div class="product-price">KES ${Number(p.price).toLocaleString()}</div>
+            <div class="product-price">${p.variants ? 'From KES ' + Math.min(...p.variants.map(v=>v.price)).toLocaleString() : 'KES ' + (p.price || 0).toLocaleString()}</div>
             <div class="product-category-tag">${getCategoryName(p.category)}</div>
             <div class="card-actions">
-              <button class="btn-edit" onclick="openEditProduct('${p._docId}')">
-                <i class="fas fa-pen"></i> Edit
-              </button>
-              <button class="btn-delete" onclick="confirmDeleteProduct('${p._docId}', '${p.name.replace(/'/g,"\\'")}')">
-                <i class="fas fa-trash"></i> Delete
-              </button>
+              <button class="btn-edit" onclick="openEditProduct('${p._docId}')"><i class="fas fa-pen"></i> Edit</button>
+              <button class="btn-delete" onclick="confirmDeleteProduct('${p._docId}', '${p.name.replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i> Delete</button>
             </div>
           </div>
         </div>
@@ -1309,11 +1330,12 @@
       return allCollections.find(c => c.id === catId)?.name || catId || '—';
     }
 
-    // ── ADD / EDIT PRODUCT ──
+    // ── PRODUCT FORM with Variants ──
     function openAddProduct() {
       editingProductId = null;
       pendingImageUrl = '';
       productColors = [];
+      productVariants = [];
       resetProductForm();
       document.getElementById('productModalTitle').textContent = 'Add Product';
       document.getElementById('productModal').classList.add('open');
@@ -1322,41 +1344,36 @@
     function openEditProduct(docId) {
       const p = allProducts.find(x => x._docId === docId);
       if (!p) return;
-
       editingProductId = docId;
       pendingImageUrl = p.image || '';
       productColors = [...(p.colors || [])];
+      productVariants = p.variants ? JSON.parse(JSON.stringify(p.variants)) : [];
       resetProductForm();
 
       document.getElementById('productModalTitle').textContent = 'Edit Product';
       document.getElementById('pName').value = p.name || '';
-      document.getElementById('pPrice').value = p.price || '';
       document.getElementById('pCategory').value = p.category || '';
       document.getElementById('pBrand').value = p.brand || '';
       document.getElementById('pId').value = p.id || p._docId || '';
       document.getElementById('pDescription').value = p.description || '';
 
-      // Image
       if (p.image) {
         showImagePreview('imagePreview', 'uploadPlaceholder', 'imageUploadArea', p.image);
-        const urlEl = document.getElementById('imageUrlDisplay');
-        urlEl.textContent = '✓ Image loaded';
-        urlEl.style.display = 'block';
+        document.getElementById('imageUrlDisplay').textContent = '✓ Image loaded';
+        document.getElementById('imageUrlDisplay').style.display = 'block';
       }
 
-      // Colors
       renderColorTags();
-
-      // Specs
+      // Base specs
       if (p.specs) {
         Object.entries(p.specs).forEach(([key, val]) => addSpecRow(key, val));
       }
-
+      renderVariants();
       document.getElementById('productModal').classList.add('open');
     }
 
     function resetProductForm() {
-      ['pName','pPrice','pBrand','pId','pDescription'].forEach(id => document.getElementById(id).value = '');
+      ['pName','pBrand','pId','pDescription'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('pCategory').value = '';
       document.getElementById('imagePreview').style.display = 'none';
       document.getElementById('uploadPlaceholder').style.display = 'block';
@@ -1365,45 +1382,127 @@
       document.getElementById('imageFileInput').value = '';
       document.getElementById('specsRows').innerHTML = '';
       productColors = [];
+      productVariants = [];
       renderColorTags();
+      renderVariants();
     }
 
     function closeProductModal() {
       document.getElementById('productModal').classList.remove('open');
     }
 
-    // ── SAVE PRODUCT ──
+    // Variants UI
+    function addVariant(label = '', price = '', specKey = '', specVal = '') {
+      productVariants.push({ label: label, price: parseFloat(price) || 0, specs: {} });
+      if (specKey && specVal) {
+        productVariants[productVariants.length-1].specs[specKey] = specVal;
+      }
+      renderVariants();
+    }
+
+    function removeVariant(index) {
+      productVariants.splice(index, 1);
+      renderVariants();
+    }
+
+    function updateVariant(index, field, value) {
+      if (field === 'label') productVariants[index].label = value;
+      if (field === 'price') productVariants[index].price = parseFloat(value) || 0;
+    }
+
+    function updateVariantSpec(index, key, value) {
+      if (!productVariants[index].specs) productVariants[index].specs = {};
+      if (value.trim() === '') {
+        delete productVariants[index].specs[key];
+      } else {
+        productVariants[index].specs[key] = value;
+      }
+    }
+
+    function addVariantSpecRow(index, key = '', val = '') {
+      const container = document.getElementById(`variant-specs-${index}`);
+      const row = document.createElement('div');
+      row.className = 'spec-row-input';
+      row.innerHTML = `
+        <input type="text" class="spec-key" placeholder="e.g. RAM" value="${key}" onchange="updateVariantSpec(${index}, this.value, document.getElementById('vs-val-${Date.now()}').value)">
+        <input type="text" class="spec-val" id="vs-val-${Date.now()}" placeholder="e.g. 4GB" value="${val}" onchange="updateVariantSpec(${index}, this.previousElementSibling.value, this.value)">
+        <button class="remove-spec" onclick="this.closest('.spec-row-input').remove()">×</button>
+      `;
+      container.appendChild(row);
+    }
+
+    function renderVariants() {
+      const container = document.getElementById('variantsContainer');
+      if (!container) return;
+      if (productVariants.length === 0) {
+        container.innerHTML = '<p style="color: var(--muted); font-size:13px;">No variants yet. Click "Add Variant" to offer different RAM/storage options with different prices.</p>';
+        return;
+      }
+      container.innerHTML = productVariants.map((v, idx) => `
+        <div class="variant-row" data-variant-index="${idx}">
+          <button class="remove-variant" onclick="removeVariant(${idx})">Remove</button>
+          <div class="variant-fields">
+            <div class="form-group">
+              <label>Variant Label</label>
+              <input type="text" value="${v.label.replace(/"/g, '&quot;')}" placeholder="e.g. 4GB RAM / 128GB Storage" onchange="updateVariant(${idx}, 'label', this.value)">
+            </div>
+            <div class="form-group">
+              <label>Price (KES)</label>
+              <input type="number" value="${v.price}" placeholder="e.g. 14000" onchange="updateVariant(${idx}, 'price', this.value)">
+            </div>
+            <div class="form-group full">
+              <label>Variant-specific Specs (optional, overrides base)</label>
+              <div id="variant-specs-${idx}" class="specs-rows">
+                ${Object.entries(v.specs || {}).map(([k, val]) => `
+                  <div class="spec-row-input">
+                    <input type="text" class="spec-key" value="${k}" onchange="updateVariantSpec(${idx}, this.value, this.nextElementSibling.value)">
+                    <input type="text" class="spec-val" value="${val}" onchange="updateVariantSpec(${idx}, this.previousElementSibling.value, this.value)">
+                    <button class="remove-spec" onclick="this.closest('.spec-row-input').remove()">×</button>
+                  </div>
+                `).join('')}
+              </div>
+              <button class="add-spec-btn" onclick="addVariantSpecRow(${idx})">+ Add Spec for this variant</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ── SAVE PRODUCT with variants ──
     async function saveProduct() {
       const name = document.getElementById('pName').value.trim();
-      const price = parseInt(document.getElementById('pPrice').value);
       const category = document.getElementById('pCategory').value;
       const brand = document.getElementById('pBrand').value.trim();
       const productId = document.getElementById('pId').value.trim().replace(/\s+/g, '-').toLowerCase();
       const description = document.getElementById('pDescription').value.trim();
 
-      if (!name || !price || !category || !brand || !productId) {
-        showToast('Please fill in all required fields', 'error');
+      if (!name || !category || !brand || !productId) {
+        showToast('Please fill all required fields', 'error');
         return;
       }
-
       if (!pendingImageUrl) {
         showToast('Please upload a product image', 'error');
         return;
       }
 
-      const specs = {};
-      document.querySelectorAll('.spec-row-input').forEach(row => {
+      // Base specs
+      const baseSpecs = {};
+      document.querySelectorAll('#specsRows .spec-row-input').forEach(row => {
         const key = row.querySelector('.spec-key')?.value?.trim();
         const val = row.querySelector('.spec-val')?.value?.trim();
-        if (key && val) specs[key] = val;
+        if (key && val) baseSpecs[key] = val;
       });
 
+      // Clean variants: remove empty labels or zero price
+      const validVariants = productVariants.filter(v => v.label.trim() !== '' && v.price > 0);
+      
       const productData = {
         id: productId,
-        name, price, category, brand, description,
+        name, category, brand, description,
         image: pendingImageUrl,
         colors: productColors,
-        specs
+        specs: baseSpecs,
+        variants: validVariants.length ? validVariants : null  // if no variants, store null
       };
 
       const btn = document.getElementById('saveProductBtn');
@@ -1421,7 +1520,6 @@
           allProducts.push({ _docId: ref.id, ...productData });
           showToast('Product added!', 'success');
         }
-
         closeProductModal();
         renderStats();
         renderProductsGrid();
@@ -1431,13 +1529,6 @@
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-save"></i> Save Product';
       }
-    }
-
-    // ── DELETE PRODUCT ──
-    function confirmDeleteProduct(docId, name) {
-      document.getElementById('deleteProductName').textContent = name;
-      document.getElementById('deleteModal').classList.add('open');
-      document.getElementById('confirmDeleteBtn').onclick = () => deleteProduct(docId);
     }
 
     async function deleteProduct(docId) {
@@ -1453,13 +1544,19 @@
       }
     }
 
-    // ── SPEC ROWS ──
+    function confirmDeleteProduct(docId, name) {
+      document.getElementById('deleteProductName').textContent = name;
+      document.getElementById('deleteModal').classList.add('open');
+      document.getElementById('confirmDeleteBtn').onclick = () => deleteProduct(docId);
+    }
+
+    // Spec rows (base)
     function addSpecRow(key = '', val = '') {
       const row = document.createElement('div');
       row.className = 'spec-row-input';
       row.innerHTML = `
-        <input type="text" class="spec-key" placeholder="e.g. Display" value="${key}">
-        <input type="text" class="spec-val" placeholder="e.g. 6.8-inch AMOLED" value="${val}">
+        <input type="text" class="spec-key" placeholder="e.g. Display" value="${key.replace(/"/g, '&quot;')}">
+        <input type="text" class="spec-val" placeholder="e.g. 6.6-inch" value="${val.replace(/"/g, '&quot;')}">
         <button class="remove-spec" onclick="removeSpecRow(this)">×</button>
       `;
       document.getElementById('specsRows').appendChild(row);
@@ -1469,7 +1566,7 @@
       btn.closest('.spec-row-input').remove();
     }
 
-    // ── COLOR TAGS ──
+    // Color tags
     function handleColorTag(e) {
       if (e.key === 'Enter' || e.key === ',') {
         e.preventDefault();
@@ -1501,16 +1598,14 @@
       input.focus();
     }
 
-    // ── IMAGE UPLOAD (Cloudinary) ──
+    // Image upload to Cloudinary
     async function uploadToCloudinary(file, progressBarId) {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
       return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`);
-
         if (progressBarId) {
           xhr.upload.onprogress = (e) => {
             if (e.lengthComputable) {
@@ -1519,13 +1614,11 @@
             }
           };
         }
-
         xhr.onload = () => {
           const data = JSON.parse(xhr.responseText);
           if (data.secure_url) resolve(data.secure_url);
           else reject(new Error(data.error?.message || 'Upload failed'));
         };
-
         xhr.onerror = () => reject(new Error('Network error'));
         xhr.send(formData);
       });
@@ -1544,17 +1637,14 @@
     async function handleImageSelect(event) {
       const file = event.target.files[0];
       if (!file) return;
-
       document.getElementById('uploadProgress').style.display = 'block';
       document.getElementById('uploadProgressBar').style.width = '0%';
-
       try {
         const url = await uploadToCloudinary(file, 'uploadProgressBar');
         pendingImageUrl = url;
         showImagePreview('imagePreview', 'uploadPlaceholder', 'imageUploadArea', url);
-        const urlEl = document.getElementById('imageUrlDisplay');
-        urlEl.textContent = '✓ Uploaded successfully';
-        urlEl.style.display = 'block';
+        document.getElementById('imageUrlDisplay').textContent = '✓ Uploaded successfully';
+        document.getElementById('imageUrlDisplay').style.display = 'block';
         showToast('Image uploaded!', 'success');
       } catch (err) {
         showToast('Upload failed: ' + err.message, 'error');
@@ -1563,7 +1653,7 @@
       }
     }
 
-    // ── SLIDES ──
+    // Slides management (unchanged)
     function openAddSlide() {
       editingSlideId = null;
       pendingSlideImageUrl = '';
@@ -1596,15 +1686,12 @@
       document.getElementById('slideModal').classList.add('open');
     }
 
-    function closeSlideModal() {
-      document.getElementById('slideModal').classList.remove('open');
-    }
+    function closeSlideModal() { document.getElementById('slideModal').classList.remove('open'); }
 
     async function handleSlideImageSelect(event) {
       const file = event.target.files[0];
       if (!file) return;
       try {
-        showToast('Uploading image…');
         const url = await uploadToCloudinary(file, null);
         pendingSlideImageUrl = url;
         showImagePreview('slideImagePreview', 'slidePlaceholder', 'slideImageArea', url);
@@ -1620,7 +1707,6 @@
       const title = document.getElementById('sTitle').value.trim();
       if (!title) { showToast('Title is required', 'error'); return; }
       if (!pendingSlideImageUrl) { showToast('Please upload an image', 'error'); return; }
-
       const data = {
         title,
         subtitle: document.getElementById('sSubtitle').value.trim(),
@@ -1628,7 +1714,6 @@
         order: parseInt(document.getElementById('sOrder').value) || 1,
         image: pendingSlideImageUrl
       };
-
       try {
         if (editingSlideId) {
           await updateDoc(doc(db, "heroSlides", editingSlideId), data);
@@ -1672,18 +1757,14 @@
             <p>${s.subtitle || '—'} &nbsp;|&nbsp; CTA: <em>${s.cta || 'Shop Now'}</em> &nbsp;|&nbsp; Order: ${s.order || 1}</p>
           </div>
           <div style="display:flex;gap:10px;">
-            <button class="btn btn-outline" onclick="editSlide('${s._docId}')">
-              <i class="fas fa-pen"></i> Edit
-            </button>
-            <button class="btn btn-red" onclick="deleteSlide('${s._docId}')">
-              <i class="fas fa-trash"></i>
-            </button>
+            <button class="btn btn-outline" onclick="editSlide('${s._docId}')"><i class="fas fa-pen"></i> Edit</button>
+            <button class="btn btn-red" onclick="deleteSlide('${s._docId}')"><i class="fas fa-trash"></i></button>
           </div>
         </div>
       `).join('');
     }
 
-    // ── COLLECTIONS ──
+    // Collections management
     function openEditCollection(docId) {
       const c = allCollections.find(x => x._docId === docId);
       if (!c) return;
@@ -1694,24 +1775,16 @@
         showImagePreview('collImagePreview', 'collPlaceholder', 'collImageArea', c.image);
         document.getElementById('collImageUrl').textContent = '✓ Image loaded';
         document.getElementById('collImageUrl').style.display = 'block';
-      } else {
-        document.getElementById('collImagePreview').style.display = 'none';
-        document.getElementById('collPlaceholder').style.display = 'block';
-        document.getElementById('collImageArea').classList.remove('has-image');
-        document.getElementById('collImageUrl').style.display = 'none';
       }
       document.getElementById('collectionModal').classList.add('open');
     }
 
-    function closeCollectionModal() {
-      document.getElementById('collectionModal').classList.remove('open');
-    }
+    function closeCollectionModal() { document.getElementById('collectionModal').classList.remove('open'); }
 
     async function handleCollImageSelect(event) {
       const file = event.target.files[0];
       if (!file) return;
       try {
-        showToast('Uploading image…');
         const url = await uploadToCloudinary(file, null);
         pendingCollImageUrl = url;
         showImagePreview('collImagePreview', 'collPlaceholder', 'collImageArea', url);
@@ -1727,12 +1800,8 @@
       const name = document.getElementById('cName').value.trim();
       if (!name) { showToast('Name is required', 'error'); return; }
       if (!pendingCollImageUrl) { showToast('Please upload an image', 'error'); return; }
-
       try {
-        await updateDoc(doc(db, "collections", editingCollectionId), {
-          name,
-          image: pendingCollImageUrl
-        });
+        await updateDoc(doc(db, "collections", editingCollectionId), { name, image: pendingCollImageUrl });
         const idx = allCollections.findIndex(c => c._docId === editingCollectionId);
         if (idx >= 0) {
           allCollections[idx].name = name;
@@ -1749,7 +1818,7 @@
     function renderCollections() {
       const list = document.getElementById('collectionsList');
       if (allCollections.length === 0) {
-        list.innerHTML = `<div class="empty-state"><i class="fas fa-layer-group"></i><p>No collections found in Firebase.</p></div>`;
+        list.innerHTML = `<div class="empty-state"><i class="fas fa-layer-group"></i><p>No collections found.</p></div>`;
         return;
       }
       list.innerHTML = allCollections.map(c => `
@@ -1759,14 +1828,12 @@
             <h4>${c.name}</h4>
             <p>ID: <code>${c.id}</code> &nbsp;|&nbsp; ${allProducts.filter(p => p.category === c.id).length} products</p>
           </div>
-          <button class="btn btn-outline" onclick="openEditCollection('${c._docId}')">
-            <i class="fas fa-pen"></i> Edit Banner
-          </button>
+          <button class="btn btn-outline" onclick="openEditCollection('${c._docId}')"><i class="fas fa-pen"></i> Edit Banner</button>
         </div>
       `).join('');
     }
 
-    // ── TABS ──
+    // Tabs
     function switchTab(tab) {
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
@@ -1776,7 +1843,7 @@
       });
     }
 
-    // ── TOAST ──
+    // Toast
     function showToast(msg, type = '') {
       const t = document.getElementById('adminToast');
       t.textContent = msg;
@@ -1784,7 +1851,6 @@
       clearTimeout(t._timer);
       t._timer = setTimeout(() => t.classList.remove('show'), 3000);
     }
-
     window.showToast = showToast;
   </script>
 </body>
