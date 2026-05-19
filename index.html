@@ -601,6 +601,38 @@
       color: var(--text);
     }
 
+    .variant-selector {
+      margin-bottom: 24px;
+    }
+
+    .variant-selector h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .variant-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .variant-option {
+      padding: 8px 16px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.3s;
+      background: #fff;
+      font-size: 14px;
+    }
+
+    .variant-option.selected {
+      border-color: var(--secondary);
+      background: var(--light);
+      font-weight: 600;
+    }
+
     .color-selector {
       margin-bottom: 24px;
     }
@@ -803,6 +835,12 @@
     .cart-item-name {
       font-weight: 600;
       font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .cart-item-variant {
+      font-size: 12px;
+      color: var(--muted);
       margin-bottom: 4px;
     }
 
@@ -1201,7 +1239,6 @@
     // ============================================================
     async function loadSiteData() {
       try {
-        // Load in parallel for speed
         const [productsSnap, collectionsSnap, slidesSnap, businessSnap] = await Promise.all([
           getDocs(collection(db, "products")),
           getDocs(collection(db, "collections")),
@@ -1209,7 +1246,6 @@
           getDocs(collection(db, "business"))
         ]);
 
-        // Build CONFIG object — identical structure to the old config.js
         window.CONFIG = {
           business: businessSnap.docs[0]?.data() || {},
           heroSlides: slidesSnap.docs
@@ -1221,7 +1257,6 @@
           products: productsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
         };
 
-        // Hide loader and boot the app
         document.getElementById('loadingScreen').style.display = 'none';
         initApp();
 
@@ -1239,7 +1274,7 @@
   </script>
 
   <!-- ============================================================
-       APP LOGIC — identical to original, just reads window.CONFIG
+       APP LOGIC — with Variants Support
        ============================================================ -->
   <script>
     // ============================================================
@@ -1253,8 +1288,12 @@
     let currentSearchQuery = '';
     let heroSlideIndex = 0;
 
+    // For product detail variant tracking
+    let selectedVariant = null;
+    let selectedColor = null;
+
     // ============================================================
-    // INITIALIZATION — called after Firebase data is ready
+    // INITIALIZATION
     // ============================================================
     function initApp() {
       renderHome();
@@ -1407,7 +1446,7 @@
     }
 
     // ============================================================
-    // PRODUCTS
+    // PRODUCTS GRID (with "From KES X" for variants)
     // ============================================================
     function renderProductGrid(products, containerId) {
       const container = document.getElementById(containerId);
@@ -1416,33 +1455,58 @@
         return;
       }
 
-      container.innerHTML = products.map(product => `
-        <div class="product-card" onclick="goToProduct('${product.id}')">
-          <div class="product-image">
-            <img src="${product.image}" alt="${product.name}">
-          </div>
-          <div class="product-info">
-            <div class="product-brand">${product.brand}</div>
-            <div class="product-name">${product.name}</div>
-            <div class="product-price">KES ${product.price.toLocaleString()}</div>
-            <div class="product-colors">
-              ${product.colors.slice(0, 3).map(color => `
-                <div class="color-dot" style="background: ${getColorCode(color)}" title="${color}"></div>
-              `).join('')}
+      container.innerHTML = products.map(product => {
+        let displayPrice;
+        if (product.variants && product.variants.length > 0) {
+          const lowestPrice = Math.min(...product.variants.map(v => v.price));
+          displayPrice = `From KES ${lowestPrice.toLocaleString()}`;
+        } else {
+          displayPrice = `KES ${(product.price || 0).toLocaleString()}`;
+        }
+
+        return `
+          <div class="product-card" onclick="goToProduct('${product.id}')">
+            <div class="product-image">
+              <img src="${product.image}" alt="${product.name}">
             </div>
-            <div class="product-actions">
-              <button class="btn-primary" onclick="addToCart('${product.id}'); event.stopPropagation();">Add to Cart</button>
+            <div class="product-info">
+              <div class="product-brand">${product.brand}</div>
+              <div class="product-name">${product.name}</div>
+              <div class="product-price">${displayPrice}</div>
+              <div class="product-colors">
+                ${(product.colors || []).slice(0, 3).map(color => `
+                  <div class="color-dot" style="background: ${getColorCode(color)}" title="${color}"></div>
+                `).join('')}
+              </div>
+              <div class="product-actions">
+                <button class="btn-primary" onclick="addToCart('${product.id}'); event.stopPropagation();">Add to Cart</button>
+              </div>
             </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
+    // ============================================================
+    // PRODUCT DETAIL (with Variants)
+    // ============================================================
     function goToProduct(productId) {
       const product = CONFIG.products.find(p => p.id === productId);
       if (!product) return;
 
       currentProduct = product;
+      
+      // Initialize variants
+      const variants = product.variants && product.variants.length ? product.variants : null;
+      let defaultVariant = null;
+      if (variants) {
+        defaultVariant = variants[0];
+        selectedVariant = defaultVariant;
+      } else {
+        selectedVariant = { price: product.price, label: 'Default', specs: product.specs || {} };
+      }
+      selectedColor = product.colors && product.colors.length ? product.colors[0] : null;
+
       hideAllViews();
       document.getElementById('productView').classList.remove('hidden');
 
@@ -1459,7 +1523,36 @@
         <span>${product.name}</span>
       `;
 
+      renderProductDetail(product, variants, defaultVariant);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderProductDetail(product, variants, defaultVariant) {
       const detail = document.getElementById('productDetail');
+      
+      // Build variant selector HTML if variants exist
+      let variantSelectorHtml = '';
+      if (variants) {
+        variantSelectorHtml = `
+          <div class="variant-selector">
+            <h3>Select Storage / RAM</h3>
+            <div class="variant-options" id="variantOptions">
+              ${variants.map((v, idx) => `
+                <div class="variant-option ${idx === 0 ? 'selected' : ''}" data-variant-index="${idx}" onclick="selectVariant(${idx})">
+                  ${v.label}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      // Determine which specs to show (variant specs override base specs)
+      const baseSpecs = product.specs || {};
+      const variantSpecs = selectedVariant?.specs || {};
+      const displaySpecs = { ...baseSpecs, ...variantSpecs };
+      const currentPrice = selectedVariant ? selectedVariant.price : product.price;
+
       detail.innerHTML = `
         <div class="product-detail">
           <div class="product-gallery">
@@ -1470,11 +1563,13 @@
           <div class="product-details">
             <div class="product-brand">${product.brand}</div>
             <h1>${product.name}</h1>
-            <div class="product-price">KES ${product.price.toLocaleString()}</div>
+            <div class="product-price" id="detailPrice">KES ${currentPrice.toLocaleString()}</div>
             <p style="color: #666; margin-bottom: 24px;">${product.description}</p>
 
-            <div class="detail-specs">
-              ${Object.entries(product.specs).map(([key, value]) => `
+            ${variantSelectorHtml}
+
+            <div class="detail-specs" id="detailSpecs">
+              ${Object.entries(displaySpecs).map(([key, value]) => `
                 <div class="spec-row">
                   <span class="spec-label">${key.charAt(0).toUpperCase() + key.slice(1)}</span>
                   <span class="spec-value">${value}</span>
@@ -1484,9 +1579,9 @@
 
             <div class="color-selector">
               <h3>Available Colors</h3>
-              <div class="color-options">
-                ${product.colors.map(color => `
-                  <div class="color-option" onclick="selectColor(this)" data-color="${color}">
+              <div class="color-options" id="colorOptions">
+                ${(product.colors || []).map(color => `
+                  <div class="color-option ${color === selectedColor ? 'selected' : ''}" onclick="selectColor(this)" data-color="${color}">
                     ${color}
                   </div>
                 `).join('')}
@@ -1508,14 +1603,40 @@
           </div>
         </div>
       `;
-
-      document.querySelector('.color-option').classList.add('selected');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+
+    // Variant selection handler
+    window.selectVariant = function(index) {
+      const variants = currentProduct.variants;
+      if (!variants) return;
+      selectedVariant = variants[index];
+      
+      // Update active class on buttons
+      document.querySelectorAll('.variant-option').forEach((btn, i) => {
+        btn.classList.toggle('selected', i === index);
+      });
+      
+      // Update price
+      document.getElementById('detailPrice').innerText = `KES ${selectedVariant.price.toLocaleString()}`;
+      
+      // Update specs: merge base specs with variant-specific specs
+      const baseSpecs = currentProduct.specs || {};
+      const variantSpecs = selectedVariant.specs || {};
+      const mergedSpecs = { ...baseSpecs, ...variantSpecs };
+      
+      const specsContainer = document.getElementById('detailSpecs');
+      specsContainer.innerHTML = Object.entries(mergedSpecs).map(([key, value]) => `
+        <div class="spec-row">
+          <span class="spec-label">${key.charAt(0).toUpperCase() + key.slice(1)}</span>
+          <span class="spec-value">${value}</span>
+        </div>
+      `).join('');
+    };
 
     function selectColor(element) {
       document.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
       element.classList.add('selected');
+      selectedColor = element.dataset.color;
     }
 
     function changeQuantity(delta) {
@@ -1525,51 +1646,71 @@
     }
 
     // ============================================================
-    // CART
+    // CART (with variant support)
     // ============================================================
     function addToCart(productId) {
       const product = CONFIG.products.find(p => p.id === productId);
       if (!product) return;
 
-      const existingItem = cart.find(item => item.id === productId);
+      // Determine price and variant label
+      let price = product.price;
+      let variantLabel = null;
+      if (product.variants && product.variants.length > 0) {
+        // Use first variant as default for grid add-to-cart
+        price = product.variants[0].price;
+        variantLabel = product.variants[0].label;
+      }
+
+      const existingItem = cart.find(item => item.id === productId && item.variantLabel === variantLabel);
       if (existingItem) {
         existingItem.qty += 1;
       } else {
         cart.push({
           id: productId,
           name: product.name,
-          price: product.price,
+          price: price,
           image: product.image,
           qty: 1,
-          color: product.colors[0]
+          variantLabel: variantLabel,
+          color: product.colors ? product.colors[0] : null
         });
       }
 
       updateCartBadge();
-      showToast(`${product.name} added to cart!`);
+      showToast(`${product.name}${variantLabel ? ' (' + variantLabel + ')' : ''} added to cart!`);
     }
 
     function addCurrentProductToCart() {
       if (!currentProduct) return;
       const qty = parseInt(document.getElementById('productQty').value);
-      const color = document.querySelector('.color-option.selected').dataset.color;
+      const color = selectedColor;
+      const variant = selectedVariant;
+      
+      const variantLabel = variant && variant.label !== 'Default' ? variant.label : null;
+      const price = variant ? variant.price : currentProduct.price;
 
-      const existingItem = cart.find(item => item.id === currentProduct.id && item.color === color);
+      const existingItem = cart.find(item => 
+        item.id === currentProduct.id && 
+        item.variantLabel === variantLabel &&
+        item.color === color
+      );
+      
       if (existingItem) {
         existingItem.qty += qty;
       } else {
         cart.push({
           id: currentProduct.id,
           name: currentProduct.name,
-          price: currentProduct.price,
+          price: price,
           image: currentProduct.image,
           qty: qty,
+          variantLabel: variantLabel,
           color: color
         });
       }
 
       updateCartBadge();
-      showToast(`${currentProduct.name} added to cart!`);
+      showToast(`${currentProduct.name}${variantLabel ? ' (' + variantLabel + ')' : ''} added to cart!`);
       document.getElementById('productQty').value = 1;
     }
 
@@ -1594,11 +1735,13 @@
           </div>
           <div class="cart-item-info">
             <div class="cart-item-name">${item.name}</div>
-            <div class="cart-item-price">KES ${item.price.toLocaleString()}</div>
+            ${item.variantLabel ? `<div class="cart-item-variant">${item.variantLabel}</div>` : ''}
+            ${item.color ? `<div class="cart-item-variant">Color: ${item.color}</div>` : ''}
+            <div class="cart-item-price">KES ${(item.price * item.qty).toLocaleString()}</div>
             <div class="cart-item-qty">
-              Qty: ${item.qty} | ${item.color}
+              Qty: ${item.qty}
+              <span class="cart-item-remove" onclick="removeFromCart(${index})">Remove</span>
             </div>
-            <span class="cart-item-remove" onclick="removeFromCart(${index})">Remove</span>
           </div>
         </div>
       `).join('');
@@ -1617,7 +1760,7 @@
     }
 
     // ============================================================
-    // CHECKOUT
+    // CHECKOUT (with variant info)
     // ============================================================
     function checkoutViaWhatsApp() {
       if (cart.length === 0) {
@@ -1628,7 +1771,10 @@
       let message = `*Winterfell Technologies Order*\n\n`;
       message += `*Items:*\n`;
       cart.forEach(item => {
-        message += `• ${item.name} (${item.color})\n  Qty: ${item.qty} x KES ${item.price.toLocaleString()}\n`;
+        message += `• ${item.name}`;
+        if (item.variantLabel) message += ` (${item.variantLabel})`;
+        if (item.color) message += `, ${item.color}`;
+        message += `\n  Qty: ${item.qty} x KES ${item.price.toLocaleString()}\n`;
       });
 
       const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
@@ -1642,14 +1788,18 @@
     function orderCurrentProductViaWhatsApp() {
       if (!currentProduct) return;
       const qty = parseInt(document.getElementById('productQty').value);
-      const color = document.querySelector('.color-option.selected').dataset.color;
-      const total = currentProduct.price * qty;
+      const color = selectedColor;
+      const variant = selectedVariant;
+      const variantLabel = variant && variant.label !== 'Default' ? variant.label : null;
+      const price = variant ? variant.price : currentProduct.price;
+      const total = price * qty;
 
       let message = `*Winterfell Technologies Order*\n\n`;
-      message += `*Product:* ${currentProduct.name}\n`;
-      message += `*Color:* ${color}\n`;
-      message += `*Quantity:* ${qty}\n`;
-      message += `*Price per unit:* KES ${currentProduct.price.toLocaleString()}\n`;
+      message += `*Product:* ${currentProduct.name}`;
+      if (variantLabel) message += ` (${variantLabel})`;
+      if (color) message += `, ${color}`;
+      message += `\n*Quantity:* ${qty}\n`;
+      message += `*Price per unit:* KES ${price.toLocaleString()}\n`;
       message += `*Total:* KES ${total.toLocaleString()}\n\n`;
       message += `Please confirm this order and provide delivery details.`;
 
@@ -1668,7 +1818,7 @@
       const results = CONFIG.products.filter(p =>
         p.name.toLowerCase().includes(query) ||
         p.brand.toLowerCase().includes(query) ||
-        p.description.toLowerCase().includes(query)
+        (p.description && p.description.toLowerCase().includes(query))
       );
 
       hideAllViews();
